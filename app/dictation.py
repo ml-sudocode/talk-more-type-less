@@ -26,12 +26,12 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gdk, GLib, Gtk
 
 os.umask(0o077)
-GLib.set_prgname('local.whisper.Dictation')
+GLib.set_prgname('io.github.sandstonelabs.TalkMoreTypeLess')
 MODEL = '/app/ggml-base.en.bin'
 
 def recorder_command(audio):
     return ['pw-record', '--rate=16000', '--channels=1', '--format=s16',
-            '--properties={ media.name = "Whisper Dictation" }', str(audio)]
+            '--properties={ media.name = "Talk More, Type Less" }', str(audio)]
 
 def recorder_error(log):
     log.seek(0)
@@ -178,7 +178,7 @@ def transcribe(audio):
 class WindowInstance:
     """Serialize GUI starts and forward activation to the existing window."""
     def __init__(self):
-        folder = Path(os.environ['XDG_RUNTIME_DIR']) / 'whisper-dictation'
+        folder = Path(os.environ['XDG_RUNTIME_DIR']) / 'talk-more-type-less'
         self.lock = (folder / 'window.lock').open('a')
         self.path = folder / 'window.sock'
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -221,7 +221,7 @@ class WindowInstance:
 
 class Dictation(Gtk.Window):
     def __init__(self):
-        super().__init__(title='Whisper Dictation')
+        super().__init__(title='Talk More, Type Less')
         self.set_default_size(610, 400)
         self.set_border_width(20)
         self.connect('delete-event', self.close)

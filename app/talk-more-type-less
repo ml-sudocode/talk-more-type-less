@@ -40,7 +40,7 @@ if not terminal:
         if os.environ.get(key):
             args += ['--setenv', key, os.environ[key]]
     # Share only the activation endpoint, not the desktop session bus.
-    instance_dir = runtime / 'whisper-dictation'
+    instance_dir = runtime / 'talk-more-type-less'
     instance_dir.mkdir(mode=0o700, exist_ok=True)
     args += ['--bind', str(instance_dir), str(instance_dir)]
     args += ['--new-session', '--ro-bind', str(wayland), str(runtime / 'wayland-0')]

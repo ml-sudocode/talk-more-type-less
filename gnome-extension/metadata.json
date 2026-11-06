@@ -1,1 +1,1 @@
-{"uuid":"whisper-dictation-shortcut@local","name":"Whisper Dictation Shortcut","description":"Ctrl+Shift+G opens or focuses the local dictation window from any app.","shell-version":["50"],"settings-schema":"org.gnome.shell.extensions.whisper-dictation-shortcut","version":1}
+{"uuid":"talk-more-type-less-shortcut@local","name":"Talk More, Type Less Shortcut","description":"Ctrl+Shift+G opens or focuses the local dictation window from any app.","shell-version":["50"],"settings-schema":"org.gnome.shell.extensions.talk-more-type-less-shortcut","version":1}

@@ -20,7 +20,7 @@ registration();
 assert.equal(binding, '');
 callback();
 assert.equal(launched, 1);
-windows = [{get_wm_class: () => 'unrelated-app'}, {get_wm_class: () => 'local.whisper.Dictation'}];
+windows = [{get_wm_class: () => 'unrelated-app'}, {get_wm_class: () => 'io.github.sandstonelabs.TalkMoreTypeLess'}];
 callback();
 assert.equal(focused, windows[1]);
 assert.equal(launched, 1);

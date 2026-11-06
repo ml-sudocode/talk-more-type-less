@@ -14,9 +14,9 @@ import urllib.request
 ROOT = Path(__file__).resolve().parent
 MODEL_URL = 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin'
 MODEL_HASH = 'a03779c86df3323075f5e796cb2ce5029f00ec8869eee3fdfb897afe36c6d002'
-UUID = 'whisper-dictation-shortcut@local'
-START = '# >>> Whisper Dictation Linux >>>'
-END = '# <<< Whisper Dictation Linux <<<'
+UUID = 'talk-more-type-less-shortcut@local'
+START = '# >>> Talk More, Type Less >>>'
+END = '# <<< Talk More, Type Less <<<'
 
 
 def verify_model(path):
@@ -44,25 +44,25 @@ def desktop_quote(path):
 
 
 def install_files(home, model, shortcut):
-    app = home / '.local/share/whisper-dictation'
+    app = home / '.local/share/talk-more-type-less'
     if app.exists() and not (app / 'install-state.json').exists():
         raise RuntimeError('A different dictation setup already exists. Nothing was replaced. Back it up and move it aside before installing this package.')
-    if app.exists() and json.loads((app / 'install-state.json').read_text()).get('project') != 'whisper-dictation-linux':
+    if app.exists() and json.loads((app / 'install-state.json').read_text()).get('project') != 'talk-more-type-less':
         raise RuntimeError('This folder belongs to a different installation. Nothing was changed.')
     extension = home / '.local/share/gnome-shell/extensions' / UUID
     if shortcut and extension.exists() and not (app / 'install-state.json').exists():
         raise RuntimeError('A shortcut extension already exists; review it before replacing it.')
     app.mkdir(parents=True, exist_ok=True)
-    for name in ('dictation.py', 'whisper-dictation', 'codex-dictation', 'shell.bash'):
+    for name in ('dictation.py', 'talk-more-type-less', 'codex-dictation', 'shell.bash'):
         shutil.copy2(ROOT / 'app' / name, app / name)
-    for name in ('whisper-dictation', 'codex-dictation'):
+    for name in ('talk-more-type-less', 'codex-dictation'):
         (app / name).chmod(0o755)
     destination = app / 'ggml-base.en.bin'
     if model.resolve() != destination.resolve():
         shutil.copyfile(model, destination)
-    desktop = home / '.local/share/applications/local.whisper.Dictation.desktop'
+    desktop = home / '.local/share/applications/io.github.sandstonelabs.TalkMoreTypeLess.desktop'
     desktop.parent.mkdir(parents=True, exist_ok=True)
-    desktop.write_text('[Desktop Entry]\nType=Application\nName=Whisper Dictation\nComment=Speak and turn your words into text locally\nExec=' + desktop_quote(app / 'whisper-dictation') + '\nIcon=audio-input-microphone\nTerminal=false\nCategories=AudioVideo;Audio;\nStartupNotify=true\n')
+    desktop.write_text('[Desktop Entry]\nType=Application\nName=Talk More, Type Less\nComment=Speak and turn your words into text locally\nExec=' + desktop_quote(app / 'talk-more-type-less') + '\nIcon=audio-input-microphone\nTerminal=false\nCategories=AudioVideo;Audio;\nStartupNotify=true\n')
     bashrc = home / '.bashrc'
     content = bashrc.read_text() if bashrc.exists() else ''
     if START not in content:
@@ -74,7 +74,7 @@ def install_files(home, model, shortcut):
         shutil.copytree(ROOT / 'gnome-extension', extension, dirs_exist_ok=True)
         subprocess.run(['glib-compile-schemas', '--strict', str(extension / 'schemas')], check=True)
     old_state = json.loads((app / 'install-state.json').read_text()) if (app / 'install-state.json').exists() else {}
-    (app / 'install-state.json').write_text(json.dumps({'project': 'whisper-dictation-linux', 'shortcut': shortcut or old_state.get('shortcut', False)}, indent=2) + '\n')
+    (app / 'install-state.json').write_text(json.dumps({'project': 'talk-more-type-less', 'shortcut': shortcut or old_state.get('shortcut', False)}, indent=2) + '\n')
     return app
 
 
@@ -91,7 +91,7 @@ def enable_shortcut():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Set up Whisper Dictation for your Linux account.')
+    parser = argparse.ArgumentParser(description='Set up Talk More, Type Less for your Linux account.')
     parser.add_argument('--model', type=Path, help='Use an already downloaded ggml-base.en.bin')
     parser.add_argument('--no-shortcut', action='store_true', help='Skip the GNOME 50 global shortcut')
     parser.add_argument('--check', action='store_true', help='Check supporting software without changing anything')
@@ -107,7 +107,7 @@ def main():
     if args.check:
         print('Supporting software found. No files or settings were changed.')
         return
-    app = Path.home() / '.local/share/whisper-dictation'
+    app = Path.home() / '.local/share/talk-more-type-less'
     if app.exists() and not (app / 'install-state.json').exists():
         raise RuntimeError('An existing custom dictation setup was found. Nothing was changed. See the README before replacing it.')
     with tempfile.TemporaryDirectory(prefix='whisper-setup-') as temporary:
@@ -123,7 +123,7 @@ def main():
     print('Installed. Open a new Bash terminal for Ctrl+G.')
     if shortcut:
         print('Sign out and sign back in once to activate Ctrl+Shift+G everywhere.')
-    print('You can also open Whisper Dictation from your applications menu.')
+    print('You can also open Talk More, Type Less from your applications menu.')
 
 
 if __name__ == '__main__':

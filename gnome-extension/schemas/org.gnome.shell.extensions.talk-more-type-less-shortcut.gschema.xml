@@ -1,0 +1,6 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.talk-more-type-less-shortcut" path="/org/gnome/shell/extensions/talk-more-type-less-shortcut/">
+    <key name="open-talk-more-type-less" type="as"><default>['&lt;Control&gt;&lt;Shift&gt;g']</default></key>
+    <key name="previous-binding" type="s"><default>'&lt;Control&gt;&lt;Shift&gt;g'</default></key>
+  </schema>
+</schemalist>

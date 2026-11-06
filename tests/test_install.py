@@ -19,8 +19,8 @@ with tempfile.TemporaryDirectory() as folder:
     assert bashrc.read_text().count(installer.START) == 1
     installer.install_files(home, model, False)
     assert bashrc.read_text().count(installer.START) == 1
-    assert 'Exec="' in (home / '.local/share/applications/local.whisper.Dictation.desktop').read_text()
-    assert (app / 'whisper-dictation').stat().st_mode & 0o111
+    assert 'Exec="' in (home / '.local/share/applications/io.github.sandstonelabs.TalkMoreTypeLess.desktop').read_text()
+    assert (app / 'talk-more-type-less').stat().st_mode & 0o111
     try:
         installer.verify_model(model)
     except RuntimeError:
@@ -28,7 +28,7 @@ with tempfile.TemporaryDirectory() as folder:
     else:
         raise AssertionError('Incorrect model must be rejected')
     other = Path(folder) / 'existing user'
-    existing = other / '.local/share/whisper-dictation'
+    existing = other / '.local/share/talk-more-type-less'
     existing.mkdir(parents=True)
     (existing / 'keep').write_text('my custom setup')
     try:

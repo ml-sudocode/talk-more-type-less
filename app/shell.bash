@@ -5,7 +5,7 @@ __whisper_home="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 __whisper_insert_at_cursor() {
     local whisper_text
-    if whisper_text="$("$__whisper_home/whisper-dictation" --terminal --start)"; then
+    if whisper_text="$("$__whisper_home/talk-more-type-less" --terminal --start)"; then
         # Keep Bash's character-aware indexing for UTF-8 prompt text.
         READLINE_LINE="${READLINE_LINE:0:READLINE_POINT}${whisper_text}${READLINE_LINE:READLINE_POINT}"
         READLINE_POINT=$((READLINE_POINT + ${#whisper_text}))

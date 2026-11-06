@@ -13,7 +13,7 @@ import tempfile
 import termios
 import tty
 
-DICTATE = str(Path(__file__).resolve().parent / 'whisper-dictation')
+DICTATE = str(Path(__file__).resolve().parent / 'talk-more-type-less')
 
 class InputEvents:
     """Keep escape sequences and bracketed pastes intact across reads."""

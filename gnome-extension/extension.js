@@ -5,15 +5,15 @@ import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-const APP_ID = 'local.whisper.Dictation';
-const KEY = 'open-whisper-dictation';
+const APP_ID = 'io.github.sandstonelabs.TalkMoreTypeLess';
+const KEY = 'open-talk-more-type-less';
 
 export default class DictationShortcut extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._oldShortcut = new Gio.Settings({
             schema_id: 'org.gnome.settings-daemon.plugins.media-keys.custom-keybinding',
-            path: '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/whisper-dictation/',
+            path: '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/talk-more-type-less/',
         });
         const previous = this._oldShortcut.get_string('binding');
         if (previous)
@@ -28,7 +28,7 @@ export default class DictationShortcut extends Extension {
                 () => this._activate());
             if (action === Meta.KeyBindingAction.NONE) {
                 this.disable();
-                Main.notifyError('Whisper Dictation', 'Could not register the global dictation shortcut.');
+                Main.notifyError('Talk More, Type Less', 'Could not register the global dictation shortcut.');
             }
             return GLib.SOURCE_REMOVE;
         });
@@ -46,7 +46,7 @@ export default class DictationShortcut extends Extension {
         } else if (app) {
             app.activate();
         } else {
-            Main.notifyError('Whisper Dictation', 'The dictation desktop entry was not found.');
+            Main.notifyError('Talk More, Type Less', 'The dictation desktop entry was not found.');
         }
     }
 

@@ -1,4 +1,4 @@
-# Whisper Dictation for Linux
+# Talk More, Type Less
 
 Speak instead of typing. Turn your speech into text on your own computer, then review it before you send it anywhere.
 
@@ -68,7 +68,7 @@ These instructions are for Ubuntu 26.04. You will need an internet connection fo
 5. **Sign out of Ubuntu and sign back in once.** This lets GNOME load the global Ctrl+Shift+G shortcut.
 6. Open a new Bash terminal if you want Ctrl+G dictation there. For Codex, start or resume Codex from that new terminal.
 
-You can also find **Whisper Dictation** in your applications menu.
+You can also find **Talk More, Type Less** in your applications menu.
 
 The setup adds a short entry to your Bash startup file and keeps a copy of that file before the first change. It does not install Codex, change your Codex account, or include anyone's login details.
 
@@ -157,7 +157,7 @@ The first setup downloads the speech model. Nothing starts recording until you c
 ## If something does not work
 
 - **No microphone sound:** choose the correct input in Ubuntu's Sound settings and check the input meter first.
-- **Ctrl+Shift+G does nothing:** sign out and back in after setup. Open the Extensions app and check that **Whisper Dictation Shortcut** is enabled. Confirm you are using GNOME 50.
+- **Ctrl+Shift+G does nothing:** sign out and back in after setup. Open the Extensions app and check that **Talk More, Type Less Shortcut** is enabled. Confirm you are using GNOME 50.
 - **The shortcut is already used by something else:** remove the conflicting shortcut in Ubuntu's Keyboard settings. The extension owns Ctrl+Shift+G while enabled.
 - **Ctrl+G still opens an editor or pauses Codex:** open a new Bash terminal and start Codex from there. Existing sessions do not pick up the new helper.
 - **Words appear instead of punctuation:** in the window, check **Spoken punctuation**. Close and reopen any window left running from before an update.

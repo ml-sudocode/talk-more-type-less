@@ -1,6 +1,0 @@
-<schemalist>
-  <schema id="org.gnome.shell.extensions.whisper-dictation-shortcut" path="/org/gnome/shell/extensions/whisper-dictation-shortcut/">
-    <key name="open-whisper-dictation" type="as"><default>['&lt;Control&gt;&lt;Shift&gt;g']</default></key>
-    <key name="previous-binding" type="s"><default>'&lt;Control&gt;&lt;Shift&gt;g'</default></key>
-  </schema>
-</schemalist>
