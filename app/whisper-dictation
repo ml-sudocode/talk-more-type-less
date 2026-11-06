@@ -1,0 +1,51 @@
+#!/usr/bin/python3
+"""Launch local dictation with no network and narrowly scoped host access."""
+import os
+from pathlib import Path
+import sys
+
+base = Path(__file__).resolve().parent
+runtime = Path(os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}'))
+display = os.environ.get('WAYLAND_DISPLAY', 'wayland-0')
+wayland = Path(display) if display.startswith('/') else runtime / display
+terminal = '--terminal' in sys.argv or '--help' in sys.argv or '-h' in sys.argv
+required = [runtime / 'pipewire-0', base / 'ggml-base.en.bin']
+if not terminal:
+    required.append(wayland)
+for path in required:
+    if not path.exists():
+        sys.exit(f'Required file or desktop socket is missing: {path}')
+
+args = [
+    'bwrap', '--unshare-all',
+    '--ro-bind', '/usr', '/usr', '--symlink', 'usr/lib', '/lib',
+    '--symlink', 'usr/bin', '/bin', '--symlink', 'usr/sbin', '/sbin',
+    '--proc', '/proc', '--dev', '/dev', '--tmpfs', '/tmp',
+    '--dir', '/tmp/home', '--dir', '/etc', '--dir', str(runtime),
+    '--ro-bind', str(base), '/app',
+    '--ro-bind', str(runtime / 'pipewire-0'), str(runtime / 'pipewire-0'),
+    '--clearenv', '--setenv', 'HOME', '/tmp/home',
+    '--setenv', 'PATH', '/usr/bin:/bin', '--setenv', 'LANG', 'C.UTF-8',
+    '--setenv', 'XDG_RUNTIME_DIR', str(runtime),
+    '--setenv', 'WAYLAND_DISPLAY', 'wayland-0',
+    '--setenv', 'GDK_BACKEND', 'wayland',
+    '--setenv', 'XDG_DATA_DIRS', '/usr/share',
+    '--setenv', 'NO_AT_BRIDGE', '1', '--setenv', 'GTK_USE_PORTAL', '0',
+    '--setenv', 'PYTHONDONTWRITEBYTECODE', '1',
+    '--chdir', '/tmp',
+]
+if not terminal:
+    # Keep the desktop's permission to focus the window across the sandbox.
+    for key in ('DESKTOP_STARTUP_ID', 'XDG_ACTIVATION_TOKEN'):
+        if os.environ.get(key):
+            args += ['--setenv', key, os.environ[key]]
+    # Share only the activation endpoint, not the desktop session bus.
+    instance_dir = runtime / 'whisper-dictation'
+    instance_dir.mkdir(mode=0o700, exist_ok=True)
+    args += ['--bind', str(instance_dir), str(instance_dir)]
+    args += ['--new-session', '--ro-bind', str(wayland), str(runtime / 'wayland-0')]
+for path in ('/etc/ld.so.cache', '/etc/fonts', '/etc/pipewire'):
+    if Path(path).exists():
+        args += ['--ro-bind', path, path]
+args += ['/usr/bin/python3', '/app/dictation.py', *sys.argv[1:]]
+os.execv('/usr/bin/bwrap', args)

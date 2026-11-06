@@ -1,0 +1,21 @@
+name: Basic checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check spoken punctuation
+        run: python3 tests/test_punctuation.py
+      - name: Check terminal behavior without recording audio
+        run: python3 tests/test_terminal.py
+      - name: Check installation in a temporary folder
+        run: python3 tests/test_install.py
+      - name: Check shortcut behavior with simulated windows
+        run: node tests/test_shortcut.cjs
+      - name: Check Bash and desktop settings
+        run: |
+          bash -n app/shell.bash
+          glib-compile-schemas --strict --dry-run gnome-extension/schemas

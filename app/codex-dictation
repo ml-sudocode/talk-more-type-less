@@ -1,0 +1,211 @@
+#!/usr/bin/python3
+"""Relay a Codex terminal; record Ctrl+G independently and paste an unsent draft."""
+import errno
+import fcntl
+import os
+from pathlib import Path
+import pty
+import select
+import signal
+import subprocess
+import sys
+import tempfile
+import termios
+import tty
+
+DICTATE = str(Path(__file__).resolve().parent / 'whisper-dictation')
+
+class InputEvents:
+    """Keep escape sequences and bracketed pastes intact across reads."""
+    def __init__(self):
+        self.pending = b''
+        self.pasting = False
+
+    def feed(self, data):
+        self.pending += data
+        events = []
+        while self.pending:
+            if self.pasting:
+                end = self.pending.find(b'\x1b[201~')
+                if end < 0:
+                    break
+                end += 6
+                events.append(('pass', self.pending[:end]))
+                self.pending = self.pending[end:]
+                self.pasting = False
+                continue
+            if self.pending.startswith(b'\x1b'):
+                if len(self.pending) < 2:
+                    break
+                if self.pending[1:2] == b'[':
+                    end = next((i + 1 for i in range(2, len(self.pending))
+                                if 0x40 <= self.pending[i] <= 0x7e), None)
+                    if end is None:
+                        break
+                elif self.pending[1:2] == b'O':
+                    if len(self.pending) < 3:
+                        break
+                    end = 3
+                else:
+                    end = 2
+            else:
+                end = 1
+            key, self.pending = self.pending[:end], self.pending[end:]
+            if key == b'\x1b[200~':
+                self.pasting = True
+                events.append(('pass', key))
+            elif key in (b'\x07', b'\x1b[103;5u', b'\x1b[103;5:1u'):
+                events.append(('record', key))
+            elif key in (b'\r', b'\n', b'\x1b[13u', b'\x1b[13;1u', b'\x1b[13;1:1u'):
+                events.append(('enter', key))
+            elif key in (b'\x03', b'\x1b[99;5u', b'\x1b[99;5:1u'):
+                events.append(('cancel', key))
+            elif key.startswith(b'\x1b[103;5:'):
+                # Do not let enhanced-keyboard repeats/releases open the editor.
+                continue
+            else:
+                events.append(('pass', key))
+        return events
+
+    def flush_escape(self):
+        if self.pending == b'\x1b':
+            self.pending = b''
+            return b'\x1b'
+        return b''
+
+
+def paste_bytes(text):
+    # Never let transcript control characters become terminal commands.
+    text = ''.join(c for c in text if c in '\n\t' or ord(c) >= 32 and ord(c) != 127)
+    return b'\x1b[200~' + text.encode('utf-8') + b'\x1b[201~'
+
+
+def write_all(fd, data):
+    while data:
+        data = data[os.write(fd, data):]
+
+
+class Recording:
+    def __init__(self):
+        self.output = tempfile.TemporaryFile()
+        self.master, slave = pty.openpty()
+        try:
+            # The private terminal consumes the recording's Enter, never Codex's.
+            self.process = subprocess.Popen([DICTATE, '--terminal', '--start'], stdin=slave,
+                                            stdout=self.output, stderr=slave,
+                                            start_new_session=True,
+                                            preexec_fn=lambda: fcntl.ioctl(0, termios.TIOCSCTTY, 0))
+        except BaseException:
+            os.close(self.master)
+            self.output.close()
+            raise
+        finally:
+            os.close(slave)
+        self.stopping = False
+        self.cancelled = False
+
+    def stop(self):
+        if not self.stopping:
+            write_all(self.master, b'\r')
+            self.stopping = True
+
+    def cancel(self):
+        self.cancelled = True
+        self.stopping = True
+        # Ctrl+C is read only by the private recorder terminal.
+        write_all(self.master, b'\x03')
+
+    def close(self):
+        if self.process.poll() is None:
+            try:
+                self.cancel()
+                self.process.wait(timeout=2)
+            except (OSError, subprocess.TimeoutExpired):
+                self.process.kill()
+                self.process.wait()
+        os.close(self.master)
+        self.output.close()
+
+
+def main():
+    if len(sys.argv) < 2:
+        return 2
+    command = sys.argv[1:]
+    if not sys.stdin.isatty() or not sys.stdout.isatty():
+        os.execv(command[0], command)
+    saved = termios.tcgetattr(0)
+    child, master = pty.fork()
+    if child == 0:
+        os.execv(command[0], command)
+    def resize(*_args):
+        size = fcntl.ioctl(0, termios.TIOCGWINSZ, b'\0' * 8)
+        fcntl.ioctl(master, termios.TIOCSWINSZ, size)
+        os.kill(child, signal.SIGWINCH)
+    old_winch = signal.signal(signal.SIGWINCH, resize)
+    recording = None
+    events = InputEvents()
+    status = 0
+    try:
+        resize()
+        tty.setraw(0)
+        while True:
+            read_fds = [0, master]
+            if recording is not None:
+                read_fds.append(recording.master)
+            ready, _, _ = select.select(read_fds, [], [], 0.05)
+            if master in ready:
+                try:
+                    data = os.read(master, 65536)
+                except OSError as exc:
+                    if exc.errno != errno.EIO:
+                        raise
+                    break
+                if not data:
+                    break
+                write_all(1, data)
+            if 0 in ready:
+                data = os.read(0, 4096)
+                if not data:
+                    break
+                for kind, key in events.feed(data):
+                    if recording is None:
+                        if kind == 'record':
+                            recording = Recording()
+                            write_all(1, b'\r\n[Dictation: recording. Enter stops; Ctrl+C cancels.]\r\n')
+                        else:
+                            write_all(master, key)
+                    elif kind == 'enter':
+                        recording.stop()
+                    elif kind == 'cancel':
+                        recording.cancel()
+                    # While recording/transcribing, no keystroke submits or interrupts Codex.
+            elif recording is None:
+                write_all(master, events.flush_escape())
+            if recording is not None:
+                if recording.master in ready:
+                    try:
+                        os.read(recording.master, 65536)  # Drain private recorder status.
+                    except OSError as exc:
+                        if exc.errno != errno.EIO:
+                            raise
+                if recording.process.poll() is not None:
+                    recording.output.seek(0)
+                    text = recording.output.read().decode('utf-8', errors='replace').strip()
+                    if recording.process.returncode == 0 and not recording.cancelled and text:
+                        write_all(master, paste_bytes(text))
+                    elif not recording.cancelled:
+                        write_all(1, b'\r\n[Dictation failed; draft unchanged.]\r\n')
+                    recording.close()
+                    recording = None
+                    resize()
+        _, status = os.waitpid(child, 0)
+    finally:
+        if recording is not None:
+            recording.close()
+        termios.tcsetattr(0, termios.TCSADRAIN, saved)
+        signal.signal(signal.SIGWINCH, old_winch)
+        os.close(master)
+    return os.waitstatus_to_exitcode(status)
+
+if __name__ == '__main__':
+    sys.exit(main())

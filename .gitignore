@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.bin
+*.wav
+*.zip
+gschemas.compiled
+.env
+backup*/
+install-state.json
+bashrc-before-install
