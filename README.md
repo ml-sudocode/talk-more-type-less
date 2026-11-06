@@ -26,7 +26,6 @@ Getting Whisper to recognize speech was only part of the job. These details made
 - **Reach dictation from other apps.** A GNOME shortcut opens the recording window without switching to the terminal.
 - **Start a fresh segment with one click.** **Clear text and record** replaces selecting and deleting the previous transcript.
 - **Specify punctuation.** I’ve spent years dictating into text boxes, so saying “comma,” “period,” and “question mark” comes naturally. Models often guess punctuation differently from what I intended. This setup converts spoken commands into punctuation in both workflows.
-- **Cancel without sending.** Ctrl+C during terminal recording cancels the recording and leaves the draft unchanged.
 
 ## Other dictation tools
 
