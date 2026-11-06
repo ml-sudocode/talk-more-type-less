@@ -1,130 +1,150 @@
 # Talk More, Type Less
 
-Speak instead of typing. Turn your speech into text on your own computer, then review it before you send it anywhere.
+**Dictate into your coding agent or your documents, with speech recognition running on your own computer.**
 
-This small project gives you a dictation window, spoken punctuation, and a way to dictate into Bash and Codex. It uses [Whisper through whisper.cpp](https://github.com/ggml-org/whisper.cpp) to recognize English speech locally. No transcription subscription or online speech service is needed.
+I built this to solve two problems:
 
-**Current home:** Ubuntu 26.04, GNOME 50, Wayland, PipeWire, and Bash. This is an early release made from a personal setup. The global shortcut and live Codex behavior still need wider testing. It is not a Windows or macOS installer.
+- **Talking to my agent in the terminal.** I wanted to dictate my next instruction while the agent kept working, review the transcript, and send it when ready.
+- **Dictating into documents without uploading my audio.** For a while, I used ChatGPT’s dictation feature and copied the text elsewhere. I wanted local transcription with network access blocked for the recording and transcription process.
 
-## What you can do
+I use a **Mac running Ubuntu Linux in an ARM64 virtual machine**. That’s where I built and use this setup.
 
-- **Press Ctrl+Shift+G from any app** to open the dictation window or return to the one already open. The GNOME shortcut needs a sign-out and sign-in after setup.
-- Click **Clear text and record** to start a fresh segment without selecting and deleting the old text.
-- Say punctuation out loud: “comma,” “question mark,” “new paragraph,” and more.
-- **Press Ctrl+G in a Bash terminal or a Codex session started from that terminal** to dictate into your draft.
-- Keep Codex working while you dictate. The terminal helper inserts text without sending it or pressing an interrupt key.
+Talk More, Type Less uses [Whisper through whisper.cpp](https://github.com/ggml-org/whisper.cpp) for English speech recognition. It provides two workflows:
 
-The desktop window does not type directly into other apps. Review the result, click **Copy text**, and paste it where you want it.
+| Where you’re working | How to dictate |
+|---|---|
+| Bash or Codex in the terminal | Press **Ctrl+G** to record and insert an editable draft. |
+| Documents and other apps | Press **Ctrl+Shift+G** to open a recording window, then copy and paste the transcript. |
 
-## A small microphone setup that stays out of the way
+## Kinks that I ironed out (for impatient people)
 
-### Recommended: a wired lavalier microphone and a USB sound card
+Getting Whisper to recognize speech was only part of the job. These details made it useful in my daily work:
 
-A lavalier is a tiny microphone that clips to your shirt. Connect a **battery-free wired lavalier microphone** to a small **USB sound card with a microphone input**, then plug that into your computer.
+- **Keep the agent working.** Starting terminal dictation doesn’t open an external editor or send an interrupt to Codex.
+- **Separate recording from sending.** Enter stops recording. A separate Enter sends the reviewed draft.
+- **Speak in bursts.** Each recording adds to the current draft, so I can pause, think, and continue without sending an unfinished message.
+- **Reach dictation from other apps.** A GNOME shortcut opens the recording window without switching to the terminal.
+- **Start a fresh segment with one click.** **Clear text and record** replaces selecting and deleting the previous transcript.
+- **Specify punctuation.** I’ve spent years dictating into text boxes, so saying “comma,” “period,” and “question mark” comes naturally. Models often guess punctuation differently from what I intended. This setup converts spoken commands into punctuation in both workflows.
+- **Cancel without sending.** Ctrl+C during terminal recording cancels the recording and leaves the draft unchanged.
 
-Why this is a convenient desk setup:
+## Other dictation tools
 
-- **Nothing needs charging.** The USB adapter supplies the microphone power, provided you choose a compatible, battery-free microphone.
-- **It is tiny.** There is no large microphone or stand taking up desk space.
-- **The microphone stays close to your mouth** while you move naturally in your chair.
+[Handy](https://github.com/cjpais/Handy), [Speech Note](https://github.com/mkiol/dsnote), and [Myna](https://github.com/canonical/myna) also offer local dictation. They may work well with coding agents; I haven’t compared them in that workflow.
 
-Check that the microphone plug matches the sound card's microphone socket. Some phone-style microphones need an adapter. A USB adapter with only a headphone output will not work.
-
-**Amazon link placeholders — replace these when you choose your products:**
-
-- Wired lavalier microphone: **[ADD AMAZON LINK HERE]**
-- USB sound card with a microphone input: **[ADD AMAZON LINK HERE]**
-- Optional plug adapter, if needed: **[ADD AMAZON LINK HERE]**
-
-### Prefer wireless?
-
-Look for a small clip-on wireless microphone with a **transmitter** that you wear and a **receiver** that plugs into the computer. A kit such as an **Insta360 Mic Air with its USB-C receiver**, or a similar transmitter-and-receiver kit, is the kind of setup to consider.
-
-Make sure the kit includes the receiver: some listings sell only the transmitter. Check computer and Linux compatibility before buying. This project has not tested or certified that microphone. Unlike the wired setup, the wireless microphone needs charging. See the manufacturer's [kit and compatibility information](https://onlinemanual.insta360.com/mic/en-us/specs/compatibility).
-
-- Wireless microphone kit, including receiver: **[ADD AMAZON LINK HERE]**
-
-After connecting either type, open **Ubuntu Settings → Sound → Input**, select it, and check that the input meter moves when you speak.
+Canonical released Myna’s public technology preview only on **12 October 2026**. Its announcement lists Intel/AMD architectures. I haven’t investigated whether it runs in my ARM64 virtual machine. [Canonical’s announcement](https://ubuntu.com/blog/myna-speech-to-text-technology-preview-available)
 
 ## Set it up
 
-These instructions are for Ubuntu 26.04. You will need an internet connection for the supporting software and the first speech-model download. Everyday transcription then works offline.
+These instructions target **Ubuntu 26.04 with GNOME 50, Wayland, PipeWire, and Bash**. This is an early release, not a native macOS or Windows app.
 
-1. On this GitHub page, choose **Code → Download ZIP**. Extract the downloaded folder.
-2. Open a terminal in that folder. On Ubuntu, you can usually right-click inside the folder and choose **Open in Terminal**.
-3. Install the supporting software by pasting this command. Ubuntu may ask for your computer password:
+You need an internet connection for setup and the first speech-model download. Transcription then works offline.
+
+1. Choose **Code → Download ZIP** on this GitHub page and extract the folder.
+2. Right-click inside the extracted folder and choose **Open in Terminal**.
+3. Install the supporting software:
 
    ```sh
    sudo apt update
    sudo apt install whisper.cpp pipewire-bin bubblewrap python3-gi gir1.2-gtk-3.0 libglib2.0-bin gnome-shell-extension-prefs
    ```
 
-4. Run the setup below **without sudo**. It downloads an English speech model of about 148 MB, checks the download, and installs the tools for your account:
+4. Run setup **without sudo**:
 
    ```sh
    /usr/bin/python3 install.py
    ```
 
-5. **Sign out of Ubuntu and sign back in once.** This lets GNOME load the global Ctrl+Shift+G shortcut.
-6. Open a new Bash terminal if you want Ctrl+G dictation there. For Codex, start or resume Codex from that new terminal.
+   Setup downloads and checks an English speech model of about 148 MB. It installs the tools for your account and adds the terminal shortcuts to your Bash startup file, keeping a backup.
 
-You can also find **Talk More, Type Less** in your applications menu.
+5. **Sign out of Ubuntu and sign back in** to activate Ctrl+Shift+G.
+6. Press **Ctrl+Shift+G** to open the dictation window. Click **Clear text and record**, speak, then click **Stop and transcribe**. Review the text and use **Copy text** to paste it into another app.
+7. Open a new Bash terminal. Start or resume Codex from that terminal to use Ctrl+G there.
 
-The setup adds a short entry to your Bash startup file and keeps a copy of that file before the first change. It does not install Codex, change your Codex account, or include anyone's login details.
+You can also open **Talk More, Type Less** from the applications menu. Codex must be installed separately.
 
-If a previous custom dictation setup is already present, setup stops instead of replacing it. Keep a backup and move the old setup aside before switching to this package. Do not run the installer over a working personal setup just to try the project.
+If setup detects an existing custom installation, it stops rather than replacing it. Back up and move that installation aside before proceeding.
 
 ### Other Linux desktops
 
-The global shortcut currently supports **GNOME 50 only**. The recording window and terminal tools also depend on Wayland, PipeWire, and Ubuntu's supporting packages. Other combinations have not been tested.
+The global shortcut supports **GNOME 50 only**. Other desktop combinations have not been tested.
 
-To deliberately skip the GNOME shortcut, run:
+To install without the GNOME shortcut:
 
 ```sh
 /usr/bin/python3 install.py --no-shortcut
 ```
 
-Use the applications menu to open the window. This does not promise a global shortcut on other desktops.
+Open the recording window from the applications menu.
 
-### Already have the English speech model?
+### Use an existing speech model
 
-You can use your existing `ggml-base.en.bin` instead of downloading it again:
+If you already have the supported `ggml-base.en.bin` file:
 
 ```sh
 /usr/bin/python3 install.py --model /path/to/ggml-base.en.bin
 ```
 
-The file must match the model version this project checks. The model is distributed separately by the [whisper.cpp project](https://github.com/ggml-org/whisper.cpp/tree/master/models); it is not included in this repository.
+Setup checks that the file matches the expected version. The model is distributed separately by [whisper.cpp](https://github.com/ggml-org/whisper.cpp/tree/master/models).
 
 ## Everyday use
 
-### In the dictation window
+### For documents and other apps
 
 1. Press **Ctrl+Shift+G**.
-2. Click **Clear text and record** and speak.
+2. Click **Clear text and record**, then speak.
 3. Click **Stop and transcribe**.
-4. Read the result and make any corrections.
+4. Review and edit the result.
 5. Click **Copy text**, switch to your app, and paste.
 
-Most apps use **Ctrl+V** to paste. Ubuntu Terminal usually uses **Ctrl+Shift+V**. Keep the dictation window open until you have pasted the text.
+Most apps use **Ctrl+V** to paste; Ubuntu Terminal usually uses **Ctrl+Shift+V**. Keep the dictation window open until you’ve pasted.
 
 ### In Bash or Codex
 
-1. Press **Ctrl+G** to start recording.
-2. Speak, then press **Enter** to stop recording.
-3. Wait for the transcription to appear in your draft.
-4. Review it. Press **Enter again** only when you want to run the command or send the message.
+1. Press **Ctrl+G** and speak.
+2. Press **Enter** to stop recording and wait for the transcript.
+3. To add more, press **Ctrl+G** again. The existing draft stays in place, and the next transcription is inserted at the cursor.
+4. Repeat as needed, then review the complete message.
+5. Press **Enter outside a recording** to send the message—or run the command at a Bash prompt.
 
-**Ctrl+C while recording cancels that recording.** In Codex, the helper consumes the recording keys itself, so they are not sent as interrupt or submit keys to Codex. Keys typed while recording or waiting for transcription are ignored, apart from stopping or cancelling the recording.
+You can build a message in short bursts. Stopping a recording does not submit it.
 
-At an ordinary Bash prompt, review dictated commands especially carefully before pressing Enter. Speech recognition can make mistakes.
+**Ctrl+C cancels a recording.** Other typing is ignored while recording or waiting for transcription.
 
-The Ctrl+G Bash shortcut works at Bash's prompt, not inside every terminal program. The Codex helper applies to sessions launched through the supplied Bash integration. A Codex session that was already open will still use its previous setup.
+The terminal shortcut works at the Bash prompt and in Codex sessions started through this integration. It does not add dictation to every terminal program. Existing sessions need to be restarted to pick up changes.
+
+Review dictated shell commands carefully before running them.
+
+## Mic setup
+
+### Recommended: a wired lavalier and USB sound card
+
+A lavalier is a tiny microphone that clips to your shirt. Connect a **battery-free wired lavalier** to a **USB sound card with a microphone input**.
+
+This setup needs no charging, takes up almost no desk space, and keeps the microphone close to your mouth. Choose a compatible microphone that receives power from the adapter.
+
+Check the plug and socket types: phone-style microphones may need an adapter, and a headphone-only USB adapter won’t work.
+
+- Wired lavalier microphone: **[ADD AMAZON LINK HERE]**
+- USB sound card: **[ADD AMAZON LINK HERE]**
+- Optional plug adapter: **[ADD AMAZON LINK HERE]**
+
+### Prefer wireless?
+
+Consider a clip-on microphone with a **transmitter you wear** and a **receiver that plugs into the computer**, such as an Insta360 Mic Air kit with a USB-C receiver.
+
+Check that the receiver is included and that the kit supports your computer. Some listings sell only the transmitter. Wireless microphones also need charging.
+
+I haven’t tested the Insta360 kit with this setup. See its [compatibility information](https://onlinemanual.insta360.com/mic/en-us/specs/compatibility).
+
+- Wireless microphone and receiver kit: **[ADD AMAZON LINK HERE]**
+
+For either setup, select the microphone under **Ubuntu Settings → Sound → Input** and check that the meter moves when you speak.
 
 ## Spoken punctuation
 
 | Say | Get |
-| --- | --- |
+|---|---|
 | period / full stop | . |
 | comma | , |
 | question mark | ? |
@@ -140,51 +160,51 @@ The Ctrl+G Bash shortcut works at Bash's prompt, not inside every terminal progr
 | new line | A line break |
 | new paragraph | A blank line |
 
-For example, **“Hello comma how are you question mark”** becomes **“Hello, how are you?”**
+**“Hello comma how are you question mark”** becomes **“Hello, how are you?”**
 
-This is a small text-conversion step after Whisper finishes. It does not call another AI service. It also removes nearby punctuation that Whisper may have added beside a spoken command.
+These conversions happen locally after transcription, without another AI service. Whisper may still guess punctuation elsewhere.
 
-These words act as commands even when you meant them literally. Uncheck **Spoken punctuation** in the window when you want the words themselves. Terminal dictation currently always converts them. Whisper may still guess punctuation elsewhere, and the conversion does not automatically fix spelling or capitalization.
+Uncheck **Spoken punctuation** in the window when you want the command words written literally. Terminal dictation always converts them. The conversion does not correct spelling or capitalization.
 
 ## Privacy
 
-Speech recognition runs on your computer. During ordinary use, the recording and transcription process runs with direct network access blocked and limited access to files. Temporary audio is removed after use; this project does not keep a transcript history.
+Recording and transcription run with direct network access blocked and limited file access. Temporary audio is removed after use, and the tool keeps no transcript history.
 
-The microphone is accessed through your desktop's audio service. The clipboard, terminal history, and apps where you paste or send text have their own behavior. **Sending a dictated prompt to Codex sends that text to Codex**, just as typing and submitting it would.
+Recording starts only when you click the record button or press Ctrl+G.
 
-The first setup downloads the speech model. Nothing starts recording until you click the record button or press Ctrl+G.
+Clipboard contents, terminal history, and submitted text follow the behavior of the receiving app. **Sending a dictated prompt to Codex sends the text to Codex**, just as typing it would.
 
-## If something does not work
+## Troubleshooting
 
-- **No microphone sound:** choose the correct input in Ubuntu's Sound settings and check the input meter first.
-- **Ctrl+Shift+G does nothing:** sign out and back in after setup. Open the Extensions app and check that **Talk More, Type Less Shortcut** is enabled. Confirm you are using GNOME 50.
-- **The shortcut is already used by something else:** remove the conflicting shortcut in Ubuntu's Keyboard settings. The extension owns Ctrl+Shift+G while enabled.
-- **Ctrl+G still opens an editor or pauses Codex:** open a new Bash terminal and start Codex from there. Existing sessions do not pick up the new helper.
-- **Words appear instead of punctuation:** in the window, check **Spoken punctuation**. Close and reopen any window left running from before an update.
-- **A recording fails:** try a segment longer than a second. Recordings stop automatically after two minutes.
-- **Transcription is slow:** speed depends on the computer. This setup uses the small English `base.en` model and the CPU.
-- **A supporting package cannot be found:** these steps target Ubuntu 26.04. Other releases may not provide the same packages.
+- **No microphone sound:** check the selected input and meter in Ubuntu’s Sound settings.
+- **Ctrl+Shift+G does nothing:** sign out and back in. In the Extensions app, check that **Talk More, Type Less Shortcut** is enabled. It requires GNOME 50.
+- **Another app uses the shortcut:** remove the conflicting assignment in Ubuntu’s Keyboard settings.
+- **Ctrl+G opens an editor or pauses Codex:** start Codex from a new Bash terminal.
+- **Punctuation commands appear as words:** enable **Spoken punctuation** in the window. Reopen windows left running from before an update.
+- **Recording fails:** try speaking for more than a second. Recordings stop automatically after two minutes.
+- **Transcription is slow:** speed depends on your computer. This setup uses the English `base.en` model on the CPU.
+- **A supporting package is unavailable:** the installation instructions target Ubuntu 26.04; other releases may have different packages.
 
-If you report a problem, include your Ubuntu version, desktop version, which shortcut you used, and what you expected to happen. Please do not attach private recordings or login information.
+When reporting a problem, include your Ubuntu and desktop versions, the shortcut you used, and what happened. Leave out private recordings and login information.
 
 ## Remove it
 
-Open a terminal in the downloaded project folder and run:
+From the downloaded project folder, run:
 
 ```sh
 /usr/bin/python3 uninstall.py
 ```
 
-Then open a new terminal. The original Bash backup is kept. Existing windows and Codex sessions should be closed when you are ready; the remover does not forcibly stop your work.
+Open a new terminal afterward. The original Bash backup is kept. Close existing dictation windows and Codex sessions when convenient.
 
-## Project status and helping out
+## Project status and contributions
 
-This is a small community starting point, not a polished app-store release. Recording and transcription have been used on an Ubuntu ARM64 setup. Automated checks cover punctuation, terminal draft insertion, cancellation, and keeping a simulated task running during recording. The GNOME handler has been checked with simulated windows; its behavior after login still needs hands-on confirmation. The new installer has been tested in temporary folders, not on a fresh Ubuntu installation.
+Recording and transcription have been used in an ARM64 Ubuntu environment. Automated tests cover punctuation, cancellation, draft insertion, and keeping a simulated task running during dictation.
 
-Questions, bug reports, clearer instructions, and compatibility reports are welcome. See [Contributing](CONTRIBUTING.md). For the few technical checks used by contributors, see [Testing](tests/README.md).
+Bug reports, compatibility reports, and clearer instructions are welcome. See [Contributing](CONTRIBUTING.md) and [Testing](tests/README.md).
 
 ## Thanks and license
 
-Built using [whisper.cpp](https://github.com/ggml-org/whisper.cpp), [OpenAI Whisper](https://github.com/openai/whisper), GTK, PipeWire, Bubblewrap, and GNOME.
+Built with [whisper.cpp](https://github.com/ggml-org/whisper.cpp), [OpenAI Whisper](https://github.com/openai/whisper), GTK, PipeWire, Bubblewrap, and GNOME.
 
-The original files in this project use the [MIT License](LICENSE). The supporting software and separately downloaded model keep their own licenses. This project is not an official OpenAI or Insta360 product.
+This project uses the [MIT License](LICENSE). Supporting software and the separately downloaded model retain their own licenses. This is not an official OpenAI or Insta360 product.
