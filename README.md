@@ -117,29 +117,28 @@ Review dictated shell commands carefully before running them.
 
 ## Mic setup
 
+I had to fiddle with the sound options on the VM controls: select "virtio-sound-device"; and USB Devices > connect to the mic. I believe these are VM-specific configs, so you may have to do some trial and error. 
+
+For either setup, inside your Linux VM, select the microphone under **Ubuntu Settings → Sound → Input** and check that the mic is not on mute (Ubuntu seems to default to putting the mic on Mute on startup). 
+
 ### Recommended: a wired lavalier and USB sound card
 
-A lavalier is a tiny microphone that clips to your shirt. Connect a **battery-free wired lavalier** to a **USB sound card with a microphone input**.
+Connect a **battery-free wired lavalier** to a **USB sound card**. 
 
-This setup needs no charging, takes up almost no desk space, and keeps the microphone close to your mouth. Choose a compatible microphone that receives power from the adapter.
+A lavalier mic is a tiny microphone. I leave it on my desk and it picks up sound fine; alternatively you can pin it to your shirt. 
 
-Check the plug and socket types: phone-style microphones may need an adapter, and a headphone-only USB adapter won’t work.
+This setup needs no charging, so you can leave it on 24/7, and takes up almost no desk space!
 
-- Wired lavalier microphone: **[ADD AMAZON LINK HERE]**
-- USB sound card: **[ADD AMAZON LINK HERE]**
-- Optional plug adapter: **[ADD AMAZON LINK HERE]**
+Note: Usually you will need a USB sound card; plugging the lavalier mic into the headphone jack generally does not work.
+
+- Wired lavalier microphone: [Example](https://www.amazon.com/Neewer-Microphone-Compatible-Omnidirectional-Condenser/dp/B0CV196ZCZ)
+- USB sound card: [Example](https://www.amazon.com/VENTION-External-Control-Adapter-Windows/dp/B0CYSX4QMJ)
 
 ### Prefer wireless?
 
-Consider a clip-on microphone with a **transmitter you wear** and a **receiver that plugs into the computer**, such as an Insta360 Mic Air kit with a USB-C receiver.
+Consider a clip-on microphone with a **transmitter you wear** and a **receiver that plugs into the computer**. Downside is that you have to charge the mic; you could buy two transmitters and alternate them.
 
-Check that the receiver is included and that the kit supports your computer. Some listings sell only the transmitter. Wireless microphones also need charging.
-
-I haven’t tested the Insta360 kit with this setup. See its [compatibility information](https://onlinemanual.insta360.com/mic/en-us/specs/compatibility).
-
-- Wireless microphone and receiver kit: **[ADD AMAZON LINK HERE]**
-
-For either setup, select the microphone under **Ubuntu Settings → Sound → Input** and check that the meter moves when you speak.
+Examples: [Option 1](https://www.amazon.com/BOYA-Wireless-Microphone-Reduction-Recording/dp/B0DJSM8PHP/), [Option 2](https://www.amazon.com/)
 
 ## Spoken punctuation
 
